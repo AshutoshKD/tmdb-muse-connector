@@ -2,11 +2,22 @@ const axios = require('axios');
 
 const BASE_URL = process.env.TMDB_API_BASE_URL || 'https://api.themoviedb.org/3';
 const IMAGE_BASE = process.env.TMDB_IMAGE_BASE_URL || 'https://image.tmdb.org/t/p/w500';
+
+// TMDB recommends Bearer token (API Read Access Token) as the primary auth method
+// Falls back to api_key query param if only API_KEY is set
+const READ_TOKEN = process.env.TMDB_READ_TOKEN;
 const API_KEY = process.env.TMDB_API_KEY;
 
 const client = axios.create({
   baseURL: BASE_URL,
-  params: { api_key: API_KEY, language: 'en-US' },
+  // Use Bearer token (recommended by TMDB docs) or fallback to api_key
+  headers: READ_TOKEN
+    ? { Authorization: `Bearer ${READ_TOKEN}` }
+    : {},
+  params: {
+    language: 'en-US',
+    ...(READ_TOKEN ? {} : { api_key: API_KEY }),
+  },
   timeout: 10000,
 });
 
