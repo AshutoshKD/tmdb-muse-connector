@@ -28,8 +28,72 @@ router.get('/search', async (req, res) => {
   }
 });
 
+// ── Trending Movies ───────────────────────────────────────────────
+// GET /movies/trending?time=week
+router.get('/trending', async (req, res) => {
+  const time = req.query.time || 'week';
+  try {
+    const { data } = await client.get(`/trending/movie/${time}`);
+    res.json({
+      time_window: time,
+      total_results: data.total_results,
+      results: data.results.map(formatMovie),
+    });
+  } catch (err) {
+    res.status(err.response?.status || 500).json({ error: err.message });
+  }
+});
+
+// ── Now Playing ───────────────────────────────────────────────────
+router.get('/now-playing', async (req, res) => {
+  const { page = 1, region } = req.query;
+  try {
+    const params = { page };
+    if (region) params.region = region;
+    const { data } = await client.get('/movie/now_playing', { params });
+    res.json({ page: data.page, total_results: data.total_results, dates: data.dates, results: data.results.map(formatMovie) });
+  } catch (err) {
+    res.status(err.response?.status || 500).json({ error: err.message });
+  }
+});
+
+// ── Upcoming Movies ───────────────────────────────────────────────
+router.get('/upcoming', async (req, res) => {
+  const { page = 1, region } = req.query;
+  try {
+    const params = { page };
+    if (region) params.region = region;
+    const { data } = await client.get('/movie/upcoming', { params });
+    res.json({ page: data.page, total_results: data.total_results, dates: data.dates, results: data.results.map(formatMovie) });
+  } catch (err) {
+    res.status(err.response?.status || 500).json({ error: err.message });
+  }
+});
+
+// ── Top Rated Movies ──────────────────────────────────────────────
+router.get('/top-rated', async (req, res) => {
+  const { page = 1 } = req.query;
+  try {
+    const { data } = await client.get('/movie/top_rated', { params: { page } });
+    res.json({ page: data.page, total_results: data.total_results, results: data.results.map(formatMovie) });
+  } catch (err) {
+    res.status(err.response?.status || 500).json({ error: err.message });
+  }
+});
+
+// ── Popular Movies ────────────────────────────────────────────────
+router.get('/popular', async (req, res) => {
+  const { page = 1 } = req.query;
+  try {
+    const { data } = await client.get('/movie/popular', { params: { page } });
+    res.json({ page: data.page, total_results: data.total_results, results: data.results.map(formatMovie) });
+  } catch (err) {
+    res.status(err.response?.status || 500).json({ error: err.message });
+  }
+});
+
 // ── Get Movie Details ─────────────────────────────────────────────
-// GET /movies/:id
+// GET /movies/:id  (must be LAST to avoid catching named routes)
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -59,93 +123,6 @@ router.get('/:id', async (req, res) => {
       cast,
       trailer: trailer ? `https://youtube.com/watch?v=${trailer.key}` : null,
       homepage: m.homepage,
-    });
-  } catch (err) {
-    res.status(err.response?.status || 500).json({ error: err.message });
-  }
-});
-
-// ── Trending Movies ───────────────────────────────────────────────
-// GET /movies/trending?time=week
-router.get('/trending/:time_window?', async (req, res) => {
-  const time = req.params.time_window || req.query.time || 'week';
-
-  try {
-    const { data } = await client.get(`/trending/movie/${time}`);
-    res.json({
-      time_window: time,
-      total_results: data.total_results,
-      results: data.results.map(formatMovie),
-    });
-  } catch (err) {
-    res.status(err.response?.status || 500).json({ error: err.message });
-  }
-});
-
-// ── Now Playing ───────────────────────────────────────────────────
-// GET /movies/now-playing
-router.get('/now-playing', async (req, res) => {
-  const { page = 1, region } = req.query;
-  try {
-    const params = { page };
-    if (region) params.region = region;
-    const { data } = await client.get('/movie/now_playing', { params });
-    res.json({
-      page: data.page,
-      total_results: data.total_results,
-      dates: data.dates,
-      results: data.results.map(formatMovie),
-    });
-  } catch (err) {
-    res.status(err.response?.status || 500).json({ error: err.message });
-  }
-});
-
-// ── Upcoming Movies ───────────────────────────────────────────────
-// GET /movies/upcoming
-router.get('/upcoming', async (req, res) => {
-  const { page = 1, region } = req.query;
-  try {
-    const params = { page };
-    if (region) params.region = region;
-    const { data } = await client.get('/movie/upcoming', { params });
-    res.json({
-      page: data.page,
-      total_results: data.total_results,
-      dates: data.dates,
-      results: data.results.map(formatMovie),
-    });
-  } catch (err) {
-    res.status(err.response?.status || 500).json({ error: err.message });
-  }
-});
-
-// ── Top Rated Movies ──────────────────────────────────────────────
-// GET /movies/top-rated
-router.get('/top-rated', async (req, res) => {
-  const { page = 1 } = req.query;
-  try {
-    const { data } = await client.get('/movie/top_rated', { params: { page } });
-    res.json({
-      page: data.page,
-      total_results: data.total_results,
-      results: data.results.map(formatMovie),
-    });
-  } catch (err) {
-    res.status(err.response?.status || 500).json({ error: err.message });
-  }
-});
-
-// ── Popular Movies ────────────────────────────────────────────────
-// GET /movies/popular
-router.get('/popular', async (req, res) => {
-  const { page = 1 } = req.query;
-  try {
-    const { data } = await client.get('/movie/popular', { params: { page } });
-    res.json({
-      page: data.page,
-      total_results: data.total_results,
-      results: data.results.map(formatMovie),
     });
   } catch (err) {
     res.status(err.response?.status || 500).json({ error: err.message });
