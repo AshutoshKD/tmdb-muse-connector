@@ -27,8 +27,52 @@ router.get('/search', async (req, res) => {
   }
 });
 
+// ── Trending TV Shows ─────────────────────────────────────────────
+router.get('/trending', async (req, res) => {
+  const time = req.query.time || 'week';
+  try {
+    const { data } = await client.get(`/trending/tv/${time}`);
+    res.json({ time_window: time, total_results: data.total_results, results: data.results.map(formatTV) });
+  } catch (err) {
+    res.status(err.response?.status || 500).json({ error: err.message });
+  }
+});
+
+// ── Popular TV Shows ──────────────────────────────────────────────
+router.get('/popular', async (req, res) => {
+  const { page = 1 } = req.query;
+  try {
+    const { data } = await client.get('/tv/popular', { params: { page } });
+    res.json({ page: data.page, total_results: data.total_results, results: data.results.map(formatTV) });
+  } catch (err) {
+    res.status(err.response?.status || 500).json({ error: err.message });
+  }
+});
+
+// ── Top Rated TV Shows ────────────────────────────────────────────
+router.get('/top-rated', async (req, res) => {
+  const { page = 1 } = req.query;
+  try {
+    const { data } = await client.get('/tv/top_rated', { params: { page } });
+    res.json({ page: data.page, total_results: data.total_results, results: data.results.map(formatTV) });
+  } catch (err) {
+    res.status(err.response?.status || 500).json({ error: err.message });
+  }
+});
+
+// ── Airing Today ──────────────────────────────────────────────────
+router.get('/airing-today', async (req, res) => {
+  const { page = 1 } = req.query;
+  try {
+    const { data } = await client.get('/tv/airing_today', { params: { page } });
+    res.json({ page: data.page, total_results: data.total_results, results: data.results.map(formatTV) });
+  } catch (err) {
+    res.status(err.response?.status || 500).json({ error: err.message });
+  }
+});
+
 // ── Get TV Show Details ───────────────────────────────────────────
-// GET /tv/:id
+// GET /tv/:id  (must be LAST)
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -63,70 +107,6 @@ router.get('/:id', async (req, res) => {
       })),
       cast,
       homepage: t.homepage,
-    });
-  } catch (err) {
-    res.status(err.response?.status || 500).json({ error: err.message });
-  }
-});
-
-// ── Trending TV Shows ─────────────────────────────────────────────
-// GET /tv/trending?time=week
-router.get('/trending/:time_window?', async (req, res) => {
-  const time = req.params.time_window || req.query.time || 'week';
-  try {
-    const { data } = await client.get(`/trending/tv/${time}`);
-    res.json({
-      time_window: time,
-      total_results: data.total_results,
-      results: data.results.map(formatTV),
-    });
-  } catch (err) {
-    res.status(err.response?.status || 500).json({ error: err.message });
-  }
-});
-
-// ── Popular TV Shows ──────────────────────────────────────────────
-// GET /tv/popular
-router.get('/popular', async (req, res) => {
-  const { page = 1 } = req.query;
-  try {
-    const { data } = await client.get('/tv/popular', { params: { page } });
-    res.json({
-      page: data.page,
-      total_results: data.total_results,
-      results: data.results.map(formatTV),
-    });
-  } catch (err) {
-    res.status(err.response?.status || 500).json({ error: err.message });
-  }
-});
-
-// ── Top Rated TV Shows ────────────────────────────────────────────
-// GET /tv/top-rated
-router.get('/top-rated', async (req, res) => {
-  const { page = 1 } = req.query;
-  try {
-    const { data } = await client.get('/tv/top_rated', { params: { page } });
-    res.json({
-      page: data.page,
-      total_results: data.total_results,
-      results: data.results.map(formatTV),
-    });
-  } catch (err) {
-    res.status(err.response?.status || 500).json({ error: err.message });
-  }
-});
-
-// ── Airing Today ──────────────────────────────────────────────────
-// GET /tv/airing-today
-router.get('/airing-today', async (req, res) => {
-  const { page = 1 } = req.query;
-  try {
-    const { data } = await client.get('/tv/airing_today', { params: { page } });
-    res.json({
-      page: data.page,
-      total_results: data.total_results,
-      results: data.results.map(formatTV),
     });
   } catch (err) {
     res.status(err.response?.status || 500).json({ error: err.message });
